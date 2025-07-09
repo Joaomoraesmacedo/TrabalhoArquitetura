@@ -18,8 +18,6 @@ class Instrucao:
     rs: Optional[int]
     rt: Optional[int]
     imm: Optional[int]
-    text: str
-
 
 def inicializa_registradores() -> list:
     lista_valores = []
@@ -32,22 +30,22 @@ def inicializa_registradores() -> list:
 def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
     lista: list[Instrucao] = []
     n = 0 #indice da isntrução
+
     
+    #Impressão inicial como visto nos exemplos:
     for op in linhas:
-        text = op.strip()
         linha = op.split(" ")
         instrucao = linha[0].upper()
         resto =linha[1]
-        
         if instrucao == Comando.MOVI.name:
-            reg, imm_str  = resto.split(",")
+            reg, imm  = resto.split(",")
             rd = int(reg[1:])
             rs = None
             rt = None
-            imm = int(imm_str)
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.MOVI, rd, rs, rt, imm, text)
-            lista.append(executa)
+            imm = int() 
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{op}"')
+            executa = Instrucao(Comando.MOVI, rd, rs, rt, imm)
+            
            
            
         elif instrucao == Comando.ADD.name:
@@ -56,9 +54,8 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = int(regs[2][1:])
             imm = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.ADD, rd, rs, rt, imm, text)
-            lista.append(executa)
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{op}"')
+            executa = Instrucao(Comando.ADD, rd, rs, rt, imm)
            
         elif instrucao == Comando.ADDI.name:
             regs  = resto.split(",")
@@ -66,18 +63,17 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = None
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.ADDI, rd, rs, rt, imm, text)
-            lista.append(executa)
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{op}"')
+            executa = Instrucao(Comando.ADDI, rd, rs, rt, imm)
         
            
         else:
             print('Esta instrução não existe')
-        
-        print(lista)
             
         n += 1
-    return lista
+        lista.append(executa)
+        print(lista)
+        return lista
 
 def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
 
@@ -88,9 +84,6 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
         
 
     while escreve_reg > 0:
-        #Escrever todo o codigo aqui primeiro BI, BO EX, EI (escreve_reg incrementa aqui) depois implementar hazards 
-        #Somente utilizando a lista_inst a instrução 0 está no indice 0 e assim por diante 
-        #Para saber o que esta na lista execute no terminal: python3 simulador.py add_mov.txt
         escreve_reg = 0
    
 
@@ -103,7 +96,6 @@ def main() -> None:
         memoria = [] #VERIFICAR COMO QUE INICIALIZA A MEMORIA 
         for i in range(32):
             memoria.append(0)
-
         executa_operacoes(operacao, nome_reg, valor_reg, memoria)
     
     else:
