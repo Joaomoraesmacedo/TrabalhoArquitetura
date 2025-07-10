@@ -79,19 +79,64 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
         n += 1
     return lista
 
+def calcula_caracteres(instrucao: str)-> str:
+    if len(instrucao) < 15:
+        falta = 15 - len(instrucao)
+        resultado = instrucao
+        if falta % 2 == 0:
+            for _ in range(falta // 2):
+                resultado = " " + resultado
+                resultado = resultado + " "
+        else:
+            for _ in range(falta // 2):
+                resultado = " " + resultado
+                resultado = resultado + " "
+            resultado = " " + resultado
+        return resultado
+    else:
+        return instrucao                 
+
+def indentifica_noop(lista:list[str], op: int):
+        if op >= 0:
+            return lista[op].strip() 
+        else:
+            return "NOOP"    
+        
 def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
 
     linhas = operacao.readlines()
     escreve_reg = len(linhas) # programa termina quando escrever todas os resultados instruções nos registradores
     lista_inst = lista_instrucoes(linhas)
+    str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" #15 caracteres dentro de cada /
+    i = 0
     
         
-
     while escreve_reg > 0:
+            
+            print(str_pipeline)
+            print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
+            print(" ")
+            print("Registradores: ")
+            print("  ".join(nome_reg[:10]) + " ".join(nome_reg[10:])) #join junta todas as str da lista (quando o R tinha dois digitos, estava desalinhando com o valor)
+            for valor in valor_reg:
+                print(f"{valor}  ", end=" ") # valores registradores
+            print()
+            print()    
+            print(f"Memória: {memoria}")
+            print(f"PC: ")
+            print(f"rd: rs: rt: imm: opcode: text: ")                
+            print()
+            print()
+            i = i + 1
+            escreve_reg = escreve_reg - 1
+            print(f"escreve_reg restante: {escreve_reg}")
+
+            
+        
         #Escrever todo o codigo aqui primeiro BI, BO EX, EI (escreve_reg incrementa aqui) depois implementar hazards 
         #Somente utilizando a lista_inst a instrução 0 está no indice 0 e assim por diante 
         #Para saber o que esta na lista execute no terminal: python3 simulador.py add_mov.txt
-        escreve_reg = 0
+        
    
 
 
