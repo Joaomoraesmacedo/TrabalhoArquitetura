@@ -97,22 +97,50 @@ def calcula_caracteres(instrucao: str)-> str:
         return instrucao                 
 
 def indentifica_noop(lista:list[str], op: int):
-        if op >= 0:
-            return lista[op].strip() 
-        else:
-            return "NOOP"    
+    if 0 <= op < len(lista):
+        return lista[op].strip()
+    else:
+        return "NOOP"
         
 def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
 
     linhas = operacao.readlines()
     escreve_reg = len(linhas) # programa termina quando escrever todas os resultados instruções nos registradores
     lista_inst = lista_instrucoes(linhas)
+    pipeline = [None,None,None,None,None] #pipeline com as operacoes 
+    pc = 0 #inicia o pc 
     str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" #15 caracteres dentro de cada /
     i = 0
-    
+    comando = True
+    while comando:
+        for i in range(4, 0, -1): # avanac as instrucoes do pipeline a cada ciclo 
+            pipeline[i] = pipeline[i-1]
+
+        if pc < len(lista_inst):  #busca da proxima instrucao 
+            pipeline[0] = lista_inst[pc] 
+            pc +=1 
+        else:
+            pipeline[0] = None
+
+        instrucao= pipeline [2]
+        if instrucao is not None: #faz a execucao de instrucoes 
+            rd = instrucao.rd  
+            rs = instrucao.rs
+            rt = instrucao.rt 
+            imm = instrucao.imm
+        if instrucao is not None:
+            if instrucao.inst == Comando.MOVI:      
+                valor_reg[rd] = imm
+            elif instrucao.inst == Comando.ADD:
+                valor_reg[rd] = valor_reg[rs] + valor_reg[rt]
+            elif instrucao.inst == Comando.ADDI:
+                valor_reg[rd] = valor_reg[rs] + imm
+        
+        if all(stage is None for stage in pipeline) and pc >= len(lista_inst): #tive qude ver no chat essa parte do all, mas ele
+            comando = False                                                     # verifica se todos os estagios do pipeline ta vazio 
+
         
     while escreve_reg > 0:
-            
             print(str_pipeline)
             print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
             print(" ")
@@ -123,7 +151,7 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
             print()
             print()    
             print(f"Memória: {memoria}")
-            print(f"PC: ")
+            print(f"PC:{pc} ")
             print(f"rd: rs: rt: imm: opcode: text: ")                
             print()
             print()
