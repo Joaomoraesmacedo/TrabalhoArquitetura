@@ -8,6 +8,10 @@ class Comando(Enum):
     MOVI = auto()
     ADD = auto()
     ADDI = auto()
+    LOAD = auto()
+    STORE = auto()
+
+    #colocar outras coisas dps
 
 @dataclass
 class Instrucao:
@@ -129,56 +133,12 @@ def executa_operacoes(operacao: io.TextIOWrapper, nome_reg: list[str], valor_reg
                 pipeline[i] = pipeline[i - 1]
             pipeline[2] = None
         else:
-            for i in range(tam, 0, -1):
-                pipeline[i] = pipeline[i - 1]
-            pc = busca_inst(pipeline, linhas, pc)
-
-        decodifica(pipeline, linhas)
-        executa_inst(pipeline, valor_reg, resultados)
-        # Impressão do pipeline
-        saida = "  "
-        for i in pipeline:
-            if isinstance(i, Instrucao):
-                saida += i.text + "  "
-            elif isinstance(i, str):
-                saida += i + "  "
-            else:
-                saida += "NOOP   "
-
-        print(str_pipeline)
-        print(saida)
-        print("  " + "  ".join(nome_reg))
-        print(valor_reg)
-        print(pc)
-
-        escreve_reg(pipeline, valor_reg, resultados)
-        comando = finaliza(pipeline, linhas, pc)
-
-        #
-
-        ''''while escreve_reg > 0:
-            print(str_pipeline)
-            print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
-            print(" ")
-            print("Registradores: ")
-            print("  ".join(nome_reg[:10]) + " ".join(nome_reg[10:])) #join junta todas as str da lista (quando o R tinha dois digitos, estava desalinhando com o valor)
-            for valor in valor_reg:
-                print(f"{valor}  ", end=" ") # valores registradores
-            print()
-            print()    
-            print(f"Memória: {memoria}")
-            print(f"PC:{pc} ")
-            print(f"rd: rs: rt: imm: opcode: text: ")                
-            print()
-            print()
-            i = i + 1
-            escreve_reg = escreve_reg - 1
-            print(f"escreve_reg restante: {escreve_reg}")
-
-            
-        #Para saber o que esta na lista execute no terminal: python3 simulador.py add_mov.txt
-        '''
+            print('Esta instrução não existe')
         
+        print(lista)
+            
+        n += 1
+    return lista
 
 def calcula_caracteres(instrucao: str)-> str:
     if len(instrucao) < 15:
@@ -202,6 +162,72 @@ def indentifica_noop(lista:list[str], op: int):
         return lista[op].strip()
     else:
         return "NOOP"
+        
+def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
+
+    linhas = operacao.readlines()
+    escreve_reg = len(linhas) # programa termina quando escrever todas os resultados instruções nos registradores
+    lista_inst = lista_instrucoes(linhas)
+    pipeline = [None,None,None,None,None] #pipeline com as operacoes 
+    pc = 0 #inicia o pc 
+    str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" #15 caracteres dentro de cada /
+    i = 0
+    comando = True
+    while comando:
+        for i in range(4, 0, -1): # avanac as instrucoes do pipeline a cada ciclo 
+            pipeline[i] = pipeline[i-1]
+
+        if pc < len(lista_inst):  #busca da proxima instrucao 
+            pipeline[0] = lista_inst[pc] 
+            pc +=1 
+        else:
+            pipeline[0] = None
+
+        instrucao= pipeline [2]
+        if instrucao is not None: #faz a execucao de instrucoes 
+            rd = instrucao.rd  
+            rs = instrucao.rs
+            rt = instrucao.rt 
+            imm = instrucao.imm
+        if instrucao is not None:
+            if instrucao.inst == Comando.MOVI:      
+                valor_reg[rd] = imm
+            elif instrucao.inst == Comando.ADD:
+                valor_reg[rd] = valor_reg[rs] + valor_reg[rt]
+            elif instrucao.inst == Comando.ADDI:
+                valor_reg[rd] = valor_reg[rs] + imm
+        
+        if all(stage is None for stage in pipeline) and pc >= len(lista_inst): #tive qude ver no chat essa parte do all, mas ele
+            comando = False                                                     # verifica se todos os estagios do pipeline ta vazio 
+
+        
+    while escreve_reg > 0:
+            print(str_pipeline)
+            print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
+            print(" ")
+            print("Registradores: ")
+            print("  ".join(nome_reg[:10]) + " ".join(nome_reg[10:])) #join junta todas as str da lista (quando o R tinha dois digitos, estava desalinhando com o valor)
+            for valor in valor_reg:
+                print(f"{valor}  ", end=" ") # valores registradores
+            print()
+            print()    
+            print(f"Memória: {memoria}")
+            print(f"PC:{pc} ")
+            print(f"rd: rs: rt: imm: opcode: text: ")                
+            print()
+            print()
+            i = i + 1
+            escreve_reg = escreve_reg - 1
+            print(f"escreve_reg restante: {escreve_reg}")
+
+            
+        
+        #Escrever todo o codigo aqui primeiro BI, BO EX, EI (escreve_reg incrementa aqui) depois implementar hazards 
+        #Somente utilizando a lista_inst a instrução 0 está no indice 0 e assim por diante 
+        #Para saber o que esta na lista execute no terminal: python3 simulador.py add_mov.txt
+        
+   
+
 
 def main() -> None:
     if len(sys.argv) == 3:
