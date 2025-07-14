@@ -74,7 +74,6 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
         else:
             print('Esta instrução não existe')
         
-        print(lista)
             
         n += 1
     return lista
@@ -101,34 +100,84 @@ def indentifica_noop(lista:list[str], op: int):
         return lista[op].strip()
     else:
         return "NOOP"
+
+def busca_inst(pipeline: list, lista_inst: list[Instrucao], pc: int) -> int:
+    if pc < len(lista_inst):
+        pipeline[0] = lista_inst[pc]
+        pc +=1 
+    else:
+        pipeline[0] = None
+    return pc
+
+def verica_hazard(pipeline: list[Instrucao]) -> int:
+    '''Retorna int do hazard que esta mais proximo da instrução, ou seja, aquele que irá demorar mais para ser resolvido'''
+    if pipeline[1] is not None:
+        for i in range(3,1,-1):
+            if pipeline[i] is not None:
+                if pipeline[1].rs == pipeline[i].rd or pipeline[1].rt == pipeline[i].rd:
+                    return  pipeline[i].rd
+    return None
+
         
 def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
 
     linhas = operacao.readlines()
-    escreve_reg = len(linhas) # programa termina quando escrever todas os resultados instruções nos registradores
     lista_inst = lista_instrucoes(linhas)
-    pipeline = [None,None,None,None,None] #pipeline com as operacoes 
+    pipeline: list[Instrucao] = [None,None,None,None,None] #pipeline com as operacoes 
+    tam = len(pipeline) - 1
     pc = 0 #inicia o pc 
     str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" #15 caracteres dentro de cada /
-    i = 0
     comando = True
+   
     while comando:
-        for i in range(4, 0, -1): # avanac as instrucoes do pipeline a cada ciclo 
-            pipeline[i] = pipeline[i-1]
+        
+        hazard = verica_hazard(pipeline) 
+        if hazard is not None:
+            for i in range(4,2,-1):
+                pipeline[i] = pipeline[i - 1]
+            pipeline[2] = None
 
-        if pc < len(lista_inst):  #busca da proxima instrucao 
-            pipeline[0] = lista_inst[pc] 
-            pc +=1 
+
         else:
-            pipeline[0] = None
+            for i in range(tam, 0, -1):
+                pipeline[i] = pipeline[i - 1]
 
-        instrucao= pipeline [2]
-        if instrucao is not None: #faz a execucao de instrucoes 
+            # Busca a próxima instrução
+            pc = busca_inst(pipeline, lista_inst, pc)
+
+       
+
+        
+        #Verifica se todos os estagios do pipeline ta vazio 
+        verifica_noop = True 
+        for i in pipeline:
+            if i != None:
+                verifica_noop = False
+        if verifica_noop and pc>= len(lista_inst):
+            comando = False
+        saida = "  "
+        for i in pipeline:
+            if i is not None:
+                saida += i.text +"  "
+            else:
+                saida += "NOOP   " 
+
+        print(str_pipeline)
+        print(saida)
+        nomes = "  "
+        for i in nome_reg:
+            nomes += i + "  "
+        print(nomes)
+        print(valor_reg)
+        print(pc)
+        if pipeline[4] is not None: #faz a execucao de instrucoes 
+            instrucao: Instrucao = pipeline[4]
             rd = instrucao.rd  
             rs = instrucao.rs
             rt = instrucao.rt 
             imm = instrucao.imm
-        if instrucao is not None:
+
+            #Dar um  jeito de armazenar esse valor e usar dps que o registro saiu desse estado
             if instrucao.inst == Comando.MOVI:      
                 valor_reg[rd] = imm
             elif instrucao.inst == Comando.ADD:
@@ -136,11 +185,7 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
             elif instrucao.inst == Comando.ADDI:
                 valor_reg[rd] = valor_reg[rs] + imm
         
-        if all(stage is None for stage in pipeline) and pc >= len(lista_inst): #tive qude ver no chat essa parte do all, mas ele
-            comando = False                                                     # verifica se todos os estagios do pipeline ta vazio 
-
-        
-    while escreve_reg > 0:
+    ''''while escreve_reg > 0:
             print(str_pipeline)
             print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
             print(" ")
@@ -164,7 +209,7 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
         #Escrever todo o codigo aqui primeiro BI, BO EX, EI (escreve_reg incrementa aqui) depois implementar hazards 
         #Somente utilizando a lista_inst a instrução 0 está no indice 0 e assim por diante 
         #Para saber o que esta na lista execute no terminal: python3 simulador.py add_mov.txt
-        
+        '''
    
 
 
