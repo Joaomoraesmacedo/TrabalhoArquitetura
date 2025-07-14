@@ -9,6 +9,9 @@ class Comando(Enum):
     MOVI = auto()
     ADD = auto()
     ADDI = auto()
+    LOAD = auto()
+    STORE = auto()
+
     #colocar outras coisas dps
 
 @dataclass
@@ -170,21 +173,42 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
         print(nomes)
         print(valor_reg)
         print(pc)
-        if pipeline[4] is not None: #faz a execucao de instrucoes 
-            instrucao: Instrucao = pipeline[4]
+        # estagio 2, execucao 
+        if pipeline[2] is not None: #faz a execucao de instrucoes 
+            instrucao: Instrucao = pipeline[2]
             rd = instrucao.rd  
             rs = instrucao.rs
             rt = instrucao.rt 
             imm = instrucao.imm
+        if instrucao.inst == Comando.MOVI:      
+                instrucao.result = imm
+        elif instrucao.inst == Comando.ADD:
+               instrucao.result = valor_reg[rs] + valor_reg[rt]
+        elif instrucao.inst == Comando.ADDI:
+                instrucao.result = valor_reg[rs] + imm
 
-            #Dar um  jeito de armazenar esse valor e usar dps que o registro saiu desse estado
-            if instrucao.inst == Comando.MOVI:      
-                valor_reg[rd] = imm
-            elif instrucao.inst == Comando.ADD:
-                valor_reg[rd] = valor_reg[rs] + valor_reg[rt]
-            elif instrucao.inst == Comando.ADDI:
-                valor_reg[rd] = valor_reg[rs] + imm
+    
+        # estagio 3 memoria 
+        if pipeline[3] is not None:
+            instrucao: Instrucao = pipeline[3]
+            if instrucao.inst == Comando.LOAD: #le a memoria e salva o resultado temp na memoria 
+                dado = memoria[instrucao.endereco]
+                instrucao.result = dado    
+            elif instrucao.inst == Comando.STORE: #pega o valor do registrador e grava na memoria
+                valor = valor_reg[instrucao.rs]
+                memoria [instrucao.endereco] = valor 
+            
         
+        #estagio 4 registrador 
+        if pipeline[4] is not None:
+            instrucao: Instrucao = pipeline[4]
+            if instrucao.inst in [Comando.ADD,Comando.ADDI,Comando.MOVI,Comando.LOAD]:
+                 valor_reg[instrucao.rd] = instrucao.result
+                
+
+
+                
+           
     ''''while escreve_reg > 0:
             print(str_pipeline)
             print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
