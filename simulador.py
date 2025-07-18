@@ -367,6 +367,7 @@ def escreve_reg(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[i
             if resultados[0].inst == Comando.SW:
                 posi = resultados[0].posi
                 memoria[posi] = resultados[0].valor
+                resultados.pop(0)
             else: 
                 posi = resultados[0].posi
                 valor_reg[posi] = resultados[0].valor
@@ -450,8 +451,10 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
         print(f"PC:{pc} ")
         print(f"rd:  rs:  rt:  imm:  opcode: text: ")  
         print()
-        print() 
-        pc = escreve_reg(pipeline, valor_reg, memoria, resultados, pc)
+        print()
+
+        if len(resultados) > 0: 
+            pc = escreve_reg(pipeline, valor_reg, memoria, resultados, pc)
 
         if jump:
             novo_pc = executa_jump(resultados, pipeline, lista_inst, pc) 
