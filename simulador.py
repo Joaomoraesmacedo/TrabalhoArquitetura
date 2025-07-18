@@ -245,16 +245,26 @@ def busca_inst(pipeline: list, lista_inst: list[Instrucao], pc: int) -> int:
         pipeline[0] = None
     return pc
 
-def verica_hazard(pipeline: list[Instrucao]) -> int:
-    '''Retorna int do hazard que esta mais proximo da instrução, ou seja, aquele que irá demorar mais para ser resolvido'''
-    if pipeline[1] is not None:
-        for i in range(3,1,-1):
-            if pipeline[i] is not None:
-                if pipeline[1].rs == pipeline[i].rd or pipeline[1].rt == pipeline[i].rd:
-                    return  pipeline[i].rd
-    return None
+def verica_hazard(pipeline: list[Instrucao]) -> bool:
+    """
+    Verifica se há hazard de dados entre a instrução em decodificação (pipeline[1])
+    e as instruções que ainda estão nas etapas posteriores.
+    Retorna True se houver conflito (ou seja, deve inserir bolha).
+    """
 
-def executa_inst(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[int], resultados: list[Resultado]) -> bool:
+    dec = pipeline[1]
+    if dec is None:
+        return False
+
+    for i in range(2, 4): 
+        anterior = pipeline[i]
+        if anterior is not None and anterior.rd is not None:
+            if dec.rs == anterior.rd or dec.rt == anterior.rd:
+                return True  # ainda há conflito com uma instrução no pipeline
+
+    return False  # nenhum conflito → pode avançar
+
+def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: list[Resultado]) -> bool:
     '''Retorna se houve jump'''
     if pipeline[2] is not None: 
             instrucao: Instrucao = pipeline[2]
@@ -340,7 +350,7 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[
             
             elif instrucao.inst == Comando.LW:  
                posi = rd    
-               valor = memoria[imm + rs]
+               valor = imm + valor_reg[rs]
                result = Resultado(Comando.LW,posi, valor)
             
             elif instrucao.inst == Comando.SW:  
@@ -362,16 +372,27 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[
     return False
 
 def escreve_reg(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[int], resultados: list[Resultado], pc: int) -> int:
-    if pipeline[4] is not None:
-        if resultados[0] is not None:
-            if resultados[0].inst == Comando.SW:
-                posi = resultados[0].posi
-                memoria[posi] = resultados[0].valor
-                resultados.pop(0)
-            else: 
-                posi = resultados[0].posi
-                valor_reg[posi] = resultados[0].valor
-                resultados.pop(0)
+    try:
+        if pipeline[4] is not None:
+            if resultados[0] is not None:
+                if resultados[0].inst == Comando.SW:
+                    posi = resultados[0].posi
+                    memoria[posi] = resultados[0].valor
+                    resultados.pop(0)
+                elif resultados[0].inst == Comando.LW:
+                    posi = resultados[0].posi
+                    valor_reg[posi] = memoria[resultados[0].valor]
+                    resultados.pop(0)
+
+                elif (resultados[0].inst == Comando.BEQ) or (resultados[0].inst == Comando.BLT) or (resultados[0].inst == Comando.BGT) or (resultados[0].inst == Comando.J):
+                    resultados.pop(0)
+                else:
+                    posi = resultados[0].posi
+                    valor_reg[posi] = resultados[0].valor
+                    resultados.pop(0)
+    except IndexError as e:
+        print("Indique um tamanho maior de memória para executar esse arquivo de operação!")
+
     return pc
 
 def executa_jump(resultados: list[Resultado], pipeline: list[Instrucao], lista_inst:list[Instrucao], pc: int) -> int:
@@ -379,7 +400,9 @@ def executa_jump(resultados: list[Resultado], pipeline: list[Instrucao], lista_i
     pipeline[0] = None
     pipeline[1] = None  
     pipeline[3] = None 
-    resultados.clear() 
+    inst_jump = resultados[-1]
+    resultados.clear()
+    resultados.append(inst_jump) 
     return pc
 
 
@@ -405,29 +428,20 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
     comando = True
     while comando:
         
-        hazard = verica_hazard(pipeline) 
-      
-        if hazard is not None:
+        if verica_hazard(pipeline):
             for i in range(4,2,-1):
                 pipeline[i] = pipeline[i - 1]
             pipeline[2] = None
-
 
         else:
             for i in range(tam, 0, -1):
                 pipeline[i] = pipeline[i - 1]
 
             # Busca a próxima instrução
-            novo_pc = busca_inst(pipeline, lista_inst, pc)
-            pc = novo_pc
+            pc = busca_inst(pipeline, lista_inst, pc)
 
-       
-
-        
         #Verifica se o jump foi tomado e armazena os resultados das instruções em resultados 
-        jump = executa_inst(pipeline, valor_reg, memoria, resultados)
-        print(jump)
-     
+        jump = executa_inst(pipeline, valor_reg, resultados)
 
         #Print
         saida = ''
@@ -449,17 +463,21 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
 
         print(f"Memória: {memoria}")
         print(f"PC:{pc} ")
-        print(f"rd:  rs:  rt:  imm:  opcode: text: ")  
+        if pipeline[4] is not None:
+            print(f"rd:{pipeline[4].rd}  rs:{pipeline[4].rs}  rt:{pipeline[4].rt}  imm:{pipeline[4].imm}  opcode:{pipeline[4].inst.name.lower()} text:{pipeline[4].text} ")  
+        else:
+            print(f'rd:"None" rs:"None" rt:"None" imm:"None" opcode:"None" text:"NOOP"')
+        if pipeline[2] is not None:
+            print(f"rd:{pipeline[2].rd}  rs:{pipeline[2].rs}  rt:{pipeline[2].rt}  imm:{pipeline[2].imm}  opcode:{pipeline[2].inst.name.lower()} text:{pipeline[2].text} ")  
+        else:
+            print(f'rd:"None" rs:"None" rt:"None" imm:"None" opcode:"None" text:"NOOP"')
         print()
         print()
 
-        if len(resultados) > 0: 
-            pc = escreve_reg(pipeline, valor_reg, memoria, resultados, pc)
+        pc = escreve_reg(pipeline, valor_reg, memoria, resultados, pc)
 
         if jump:
-            novo_pc = executa_jump(resultados, pipeline, lista_inst, pc) 
-            pc = novo_pc
-            print(resultados)
+            pc = executa_jump(resultados, pipeline, lista_inst, pc) 
 
         comando = finaliza(pipeline, lista_inst, pc)
      
@@ -467,15 +485,13 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
 def main() -> None:
     if len(sys.argv) == 3:
         nomeArq = sys.argv[1] 
-        tam_memoria = int(sys.argv[2])
+        tam_memoria = int(sys.argv[2]) #Flag para inicializar a memoria
         operacao = open(nomeArq, 'r')
-        nome_reg, valor_reg = inicializa_registradores() #registradores = 0
-        memoria = [] #VERIFICAR COMO QUE INICIALIZA A MEMORIA 
+        nome_reg, valor_reg = inicializa_registradores() 
+        memoria = []
         for i in range(tam_memoria):
             memoria.append(0)
         
-        print(memoria)
-
         executa_operacoes(operacao, nome_reg, valor_reg, memoria)
     
     else:
