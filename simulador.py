@@ -6,10 +6,21 @@ from typing import Optional
 
 
 class Comando(Enum):
-    MOVI = auto()
     ADD = auto()
     ADDI = auto()
-    #colocar outras coisas dps
+    SUB = auto()
+    SUBI = auto()
+    MUL = auto()
+    DIV = auto()
+    MOD = auto()
+    BLT = auto()
+    BGT = auto()
+    BEQ = auto()
+    J = auto()
+    LW = auto()
+    SW = auto()
+    MOV = auto()
+    MOVI = auto()
 
 @dataclass
 class Instrucao:
@@ -42,19 +53,8 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
         linha = op.split(" ")
         instrucao = linha[0].upper()
         resto =linha[1]
-        
-        if instrucao == Comando.MOVI.name:
-            reg, imm_str  = resto.split(",")
-            rd = int(reg[1:])
-            rs = None
-            rt = None
-            imm = int(imm_str)
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.MOVI, rd, rs, rt, imm, text)
-            lista.append(executa)
            
-           
-        elif instrucao == Comando.ADD.name:
+        if instrucao == Comando.ADD.name:
             regs  = resto.split(",")
             rd = int(regs[0][1:])
             rs = int(regs[1][1:])
@@ -74,7 +74,138 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             executa = Instrucao(Comando.ADDI, rd, rs, rt, imm, text)
             lista.append(executa)
         
-           
+        elif instrucao == Comando.SUB.name:
+            regs  = resto.split(",")
+            rd = int(regs[0][1:])
+            rs = int(regs[1][1:])
+            rt = int(regs[2][1:])
+            imm = None
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.SUB, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.SUBI.name:
+            regs  = resto.split(",")
+            rd = int(regs[0][1:])
+            rs = int(regs[1][1:])
+            rt = None
+            imm = int(regs[2])
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.SUBI, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.MUL.name:
+            regs  = resto.split(",")
+            rd = int(regs[0][1:])
+            rs = int(regs[1][1:])
+            rt = int(regs[2][1:])
+            imm = None
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.MUL, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.DIV.name:
+            regs  = resto.split(",")
+            rd = int(regs[0][1:])
+            rs = int(regs[1][1:])
+            rt = int(regs[2][1:])
+            imm = None
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.MUL, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.MOD.name:
+            regs  = resto.split(",")
+            rd = int(regs[0][1:])
+            rs = int(regs[1][1:])
+            rt = int(regs[2][1:])
+            imm = None
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.MOD, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.BLT.name:
+            regs  = resto.split(",")
+            rd = None
+            rs = int(regs[0][1:])
+            rt = int(regs[1][1:])
+            imm = int(regs[2])
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.BGT.name:
+            regs  = resto.split(",")
+            rd = None
+            rs = int(regs[0][1:])
+            rt = int(regs[1][1:])
+            imm = int(regs[2])
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.BEQ.name:
+            regs  = resto.split(",")
+            rd = None
+            rs = int(regs[0][1:])
+            rt = int(regs[1][1:])
+            imm = int(regs[2])
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.J.name:
+            rd = None
+            rs = None
+            rt = None
+            imm = linha[2]
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            lista.append(executa)
+    
+        elif instrucao == Comando.LW.name:
+            regs = resto.split(",")
+            rd =  int(regs[0][1:])
+            valor = regs[1].split("(")
+            imm = int(valor[0])
+            rs = int(valor[1][1:-1])
+            rt = None
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.LW, rd, rs, rt, imm, text)
+            lista.append(executa)
+
+
+        elif instrucao == Comando.SW.name:
+            regs = resto.split(",")
+            rs =  int(regs[0][1:])
+            valor = regs[1].split("(")
+            imm = int(valor[0])
+            rt = int(valor[1][1:-1])
+            rd = None
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
+        elif instrucao == Comando.MOV.name:
+            regs  = resto.split(",")
+            rd = int(regs[0][1:])
+            rs = None
+            rt = None
+            imm = int(regs[2])
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.ADDI, rd, rs, rt, imm, text)
+            lista.append(executa)
+
+        elif instrucao == Comando.MOVI.name:
+            reg, imm_str  = resto.split(",")
+            rd = int(reg[1:])
+            rs = None
+            rt = None
+            imm = int(imm_str)
+            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+            executa = Instrucao(Comando.MOVI, rd, rs, rt, imm, text)
+            lista.append(executa)
+        
         else:
             print('Esta instrução não existe')
         
