@@ -193,48 +193,35 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
      
 
         #Print
-        saida = "  "
+        saida = ''
         for i in pipeline:
             if i is not None:
-                saida += i.text +"  "
+                saida += f"|{calcula_caracteres(i.text)}|" 
             else:
-                saida += "NOOP   " 
+                saida += f"|{calcula_caracteres("NOOP")}|" 
 
         print(str_pipeline)
         print(saida)
-        nomes = "  "
-        for i in nome_reg:
-            nomes += i + "  "
-        print(nomes)
-        print(valor_reg)
-        print(pc)
+        print("Registradores: ")
+        for nome in nome_reg:
+            print(f"{nome:<5}", end=" ")
+        print()
+        for valor in valor_reg:
+            print(f"{str(valor):<5}", end=" ")
+        print()
 
+        print(f"Memória: {memoria}")
+        print(f"PC:{pc} ")
+        print(f"rd:  rs:  rt:  imm:  opcode: text: ")  
+        print()
+        print() 
         escreve_reg(pipeline, valor_reg, resultados)
-      
-
         comando = finaliza(pipeline, lista_inst, pc)
-    ''''while escreve_reg > 0:
-            print(str_pipeline)
-            print(f"|{calcula_caracteres(indentifica_noop(linhas, i))}||{calcula_caracteres(indentifica_noop(linhas, i - 1))}||{calcula_caracteres(indentifica_noop(linhas, i-2))}||{calcula_caracteres(indentifica_noop(linhas, i - 3))}||{calcula_caracteres(indentifica_noop(linhas, i - 4 ))}|") # pipeline 
-            print(" ")
-            print("Registradores: ")
-            print("  ".join(nome_reg[:10]) + " ".join(nome_reg[10:])) #join junta todas as str da lista (quando o R tinha dois digitos, estava desalinhando com o valor)
-            for valor in valor_reg:
-                print(f"{valor}  ", end=" ") # valores registradores
-            print()
-            print()    
-            print(f"Memória: {memoria}")
-            print(f"PC:{pc} ")
-            print(f"rd: rs: rt: imm: opcode: text: ")                
-            print()
-            print()
-            i = i + 1
-            escreve_reg = escreve_reg - 1
-            print(f"escreve_reg restante: {escreve_reg}")
+       
 
             
-        #Para saber o que esta na lista execute no terminal: python3 simulador.py add_mov.txt
-        '''
+        
+        
         
 
 
