@@ -33,8 +33,9 @@ class Instrucao:
 
 @dataclass
 class Resultado:
-    reg: int
-    valor: int
+    inst: Comando
+    posi: Optional[int] 
+    valor: Optional[int] 
 
 def inicializa_registradores() -> list:
     lista_valores = []
@@ -111,7 +112,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rt = int(regs[2][1:])
             imm = None
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.MUL, rd, rs, rt, imm, text)
+            executa = Instrucao(Comando.DIV, rd, rs, rt, imm, text)
             lista.append(executa)
         
         elif instrucao == Comando.MOD.name:
@@ -141,7 +142,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rt = int(regs[1][1:])
             imm = int(regs[2])
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            executa = Instrucao(Comando.BGT, rd, rs, rt, imm, text)
             lista.append(executa)
         
         elif instrucao == Comando.BEQ.name:
@@ -151,7 +152,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rt = int(regs[1][1:])
             imm = int(regs[2])
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            executa = Instrucao(Comando.BEQ, rd, rs, rt, imm, text)
             lista.append(executa)
         
         elif instrucao == Comando.J.name:
@@ -160,7 +161,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rt = None
             imm = linha[2]
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            executa = Instrucao(Comando.J, rd, rs, rt, imm, text)
             lista.append(executa)
     
         elif instrucao == Comando.LW.name:
@@ -168,7 +169,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rd =  int(regs[0][1:])
             valor = regs[1].split("(")
             imm = int(valor[0])
-            rs = int(valor[1][1:-1])
+            rs = int(valor[1].strip()[1:].replace(")", ""))
             rt = None
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.LW, rd, rs, rt, imm, text)
@@ -180,10 +181,10 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs =  int(regs[0][1:])
             valor = regs[1].split("(")
             imm = int(valor[0])
-            rt = int(valor[1][1:-1])
+            rt = int(valor[1].strip()[1:].replace(")", ""))
             rd = None
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
+            executa = Instrucao(Comando.SW, rd, rs, rt, imm, text)
             lista.append(executa)
         
         elif instrucao == Comando.MOV.name:
@@ -193,7 +194,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rt = None
             imm = int(regs[2])
             print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
-            executa = Instrucao(Comando.ADDI, rd, rs, rt, imm, text)
+            executa = Instrucao(Comando.MOV, rd, rs, rt, imm, text)
             lista.append(executa)
 
         elif instrucao == Comando.MOVI.name:
@@ -253,30 +254,132 @@ def verica_hazard(pipeline: list[Instrucao]) -> int:
                     return  pipeline[i].rd
     return None
 
-def executa_inst(pipeline: list[Instrucao], valor_reg: list[int], resultados: list[Resultado]) -> list[Resultado]:
-    if pipeline[2] is not None: #faz a execucao de instrucoes 
+def executa_inst(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[int], resultados: list[Resultado]) -> bool:
+    '''Retorna se houve jump'''
+    if pipeline[2] is not None: 
             instrucao: Instrucao = pipeline[2]
             rd = instrucao.rd  
             rs = instrucao.rs
             rt = instrucao.rt 
             imm = instrucao.imm
 
-            #Dar um  jeito de armazenar esse valor e usar dps que o registro saiu desse estado
-            if instrucao.inst == Comando.MOVI:      
-               valor = imm
-            elif instrucao.inst == Comando.ADD:
+            
+            if instrucao.inst == Comando.ADD:
+                posi = rd
                 valor = valor_reg[rs] + valor_reg[rt]
+                result = Resultado(Comando.ADD,posi, valor)
+
             elif instrucao.inst == Comando.ADDI:
+                posi = rd
                 valor = valor_reg[rs] + imm
+                result = Resultado(Comando.ADD,posi, valor)
 
-            result = Resultado(rd, valor)
+            elif instrucao.inst == Comando.SUB:
+                posi = rd
+                valor = valor_reg[rs] - valor_reg[rt]
+                result = Resultado(Comando.SUB,posi, valor)
+            
+            elif instrucao.inst == Comando.SUBI:  
+               posi = rd    
+               valor = valor_reg[rs] - imm
+               result = Resultado(Comando.SUBI,posi, valor)
+            
+            elif instrucao.inst == Comando.MUL:  
+               posi = rd    
+               valor = valor_reg[rs] * valor_reg[rt]
+               result = Resultado(Comando.MUL,posi, valor)
+
+            elif instrucao.inst == Comando.DIV:  
+               posi = rd    
+               valor = valor_reg[rs] / valor_reg[rt]
+               result = Resultado(Comando.DIV,posi, valor)
+            
+            elif instrucao.inst == Comando.MOD:  
+               posi = rd    
+               valor = valor_reg[rs] % valor_reg[rt]
+               result = Resultado(Comando.MOD,posi, valor)
+
+            elif instrucao.inst == Comando.BLT:  
+               posi = None
+               if valor_reg[rs] < valor_reg[rt]:
+                    valor = imm #Verificar depois para atribuir o PC
+                    result = Resultado(Comando.BLT, posi, valor)
+                    resultados.append(result)
+                    return True
+               else:
+                   valor = None
+               result = Resultado(Comando.BLT, posi, valor)
+            
+            elif instrucao.inst == Comando.BGT:   
+               posi = None
+               if valor_reg[rs] > valor_reg[rt]:
+                    valor = imm #Verificar depois para atribuir o PC
+                    result = Resultado(Comando.BGT,posi, valor)
+                    resultados.append(result)
+                    return True
+               else:
+                   valor = None
+               result = Resultado(Comando.BGT,posi, valor)
+            
+            elif instrucao.inst == Comando.BEQ:  
+               posi = None
+               if valor_reg[rs] == valor_reg[rt]:
+                    valor = imm #Verificar depois para atribuir o PC
+                    result = Resultado(Comando.BEQ,posi,valor)
+                    resultados.append(result)
+                    return True
+               else:
+                   valor = None
+               result = Resultado(Comando.BEQ,posi,valor)
+            
+            elif instrucao.inst == Comando.J:  
+               posi = None
+               valor = imm
+               result = Resultado(Comando.J, posi, valor)
+               return True
+            
+            elif instrucao.inst == Comando.LW:  
+               posi = rd    
+               valor = memoria[imm + rs]
+               result = Resultado(Comando.LW,posi, valor)
+            
+            elif instrucao.inst == Comando.SW:  
+               posi = imm + valor_reg[rt]
+               valor = valor_reg[rs]
+               result = Resultado(Comando.SW,posi, valor)
+            
+            elif instrucao.inst == Comando.MOV:  
+               posi = rd    
+               valor = rs
+               result = Resultado(Comando.MOV,posi, valor)
+            
+            elif instrucao.inst == Comando.MOVI:  
+               posi = rd    
+               valor = imm
+               result = Resultado(Comando.MOVI,posi, valor)
+           
             resultados.append(result)
+    return False
 
-def escreve_reg(pipeline: list[Instrucao], valor_reg: list[int], resultados: list[Resultado]):
+def escreve_reg(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[int], resultados: list[Resultado], pc: int) -> int:
     if pipeline[4] is not None:
-        posi = resultados[0].reg
-        valor_reg[posi] = resultados[0].valor
-        resultados.pop(0)
+        if resultados[0] is not None:
+            if resultados[0].inst == Comando.SW:
+                posi = resultados[0].posi
+                memoria[posi] = resultados[0].valor
+            else: 
+                posi = resultados[0].posi
+                valor_reg[posi] = resultados[0].valor
+                resultados.pop(0)
+    return pc
+
+def executa_jump(resultados: list[Resultado], pipeline: list[Instrucao], lista_inst:list[Instrucao], pc: int) -> int:
+    pc = resultados[-1].valor
+    pipeline[0] = None
+    pipeline[1] = None  
+    pipeline[3] = None 
+    resultados.clear() 
+    return pc
 
 
 def finaliza(pipeline, lista_inst, pc) -> bool:
@@ -292,17 +395,17 @@ def finaliza(pipeline, lista_inst, pc) -> bool:
 def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
 
     linhas = operacao.readlines()
-    lista_inst = lista_instrucoes(linhas)
+    lista_inst: list[Instrucao] = lista_instrucoes(linhas)
     pipeline: list[Instrucao] = [None,None,None,None,None] #pipeline com as operacoes 
     tam = len(pipeline) - 1
     pc = 0 #inicia o pc 
     resultados = []
     str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" #15 caracteres dentro de cada /
     comando = True
-   
     while comando:
         
         hazard = verica_hazard(pipeline) 
+      
         if hazard is not None:
             for i in range(4,2,-1):
                 pipeline[i] = pipeline[i - 1]
@@ -314,13 +417,15 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
                 pipeline[i] = pipeline[i - 1]
 
             # Busca a próxima instrução
-            pc = busca_inst(pipeline, lista_inst, pc)
+            novo_pc = busca_inst(pipeline, lista_inst, pc)
+            pc = novo_pc
 
        
 
         
-        #Verifica se todos os estagios do pipeline ta vazio 
-        executa_inst(pipeline, valor_reg, resultados)
+        #Verifica se o jump foi tomado e armazena os resultados das instruções em resultados 
+        jump = executa_inst(pipeline, valor_reg, memoria, resultados)
+        print(jump)
      
 
         #Print
@@ -346,16 +451,16 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
         print(f"rd:  rs:  rt:  imm:  opcode: text: ")  
         print()
         print() 
-        escreve_reg(pipeline, valor_reg, resultados)
+        pc = escreve_reg(pipeline, valor_reg, memoria, resultados, pc)
+
+        if jump:
+            novo_pc = executa_jump(resultados, pipeline, lista_inst, pc) 
+            pc = novo_pc
+            print(resultados)
+
         comando = finaliza(pipeline, lista_inst, pc)
+     
        
-
-            
-        
-        
-        
-
-
 def main() -> None:
     if len(sys.argv) == 3:
         nomeArq = sys.argv[1] 
