@@ -52,7 +52,7 @@ class Resultado:
 def inicializa_registradores() -> list:
     '''
     Inicializa os registradores em uma lista de R0 até R31 e os seus seus valores em outra lista inicialmente
-    
+    com todos os elementos igual a 0
 
     '''
 
@@ -64,6 +64,11 @@ def inicializa_registradores() -> list:
     return lista_registradores, lista_valores  
 
 def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
+    '''
+    Retorna uma lista do tipo Instrucao com todas as instruções contidas no arquivo 
+    que está sendo executado
+
+    '''
     lista: list[Instrucao] = []
     n = 0 #indice da isntrução
     
@@ -233,6 +238,10 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
     return lista
 
 def calcula_caracteres(instrucao: str)-> str:
+    '''
+    Calcula os espaços em branco necessários para o alinhamento
+    da forma correta na Pipeline
+    '''
     if len(instrucao) < 15:
         falta = 15 - len(instrucao)
         resultado = instrucao
@@ -250,6 +259,9 @@ def calcula_caracteres(instrucao: str)-> str:
         return instrucao                 
 
 def indentifica_noop(lista:list[str], op: int):
+    '''
+    Identifica se exite uma operação, caso contrário retorna "NOOP" (Sem operação)
+    '''
     if 0 <= op < len(lista):
         return lista[op].strip()
     else:
@@ -283,7 +295,11 @@ def verica_hazard(pipeline: list[Instrucao]) -> bool:
     return False  # nenhum conflito → pode avançar
 
 def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: list[Resultado]) -> bool:
-    '''Retorna se houve jump'''
+    '''
+    Realiza a instrução, atribuindo os valores ao registradores correspondentes,
+    executando o comando, criando um resultado do tipo Resultado e o 
+    inserindo em uma lista
+    '''
     if pipeline[2] is not None: 
             instrucao: Instrucao = pipeline[2]
             rd = instrucao.rd  
@@ -390,6 +406,10 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: lis
     return False
 
 def escreve_reg(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[int], resultados: list[Resultado], pc: int) -> int:
+    '''
+    Escreve as instruções que passaram por todos os estágios da pipeline
+    nos registradores ou na memória, caso o tamanho seja suficiente
+    '''
     try:
         if pipeline[4] is not None:
             if resultados[0] is not None:
@@ -414,6 +434,10 @@ def escreve_reg(pipeline: list[Instrucao], valor_reg: list[int], memoria: list[i
     return pc
 
 def executa_jump(resultados: list[Resultado], pipeline: list[Instrucao], lista_inst:list[Instrucao], pc: int) -> int:
+    '''
+    Realiza o Jump, alterando o fluxo do programa e descartando as instruções
+    que não serão mais executadas
+    '''
     pc = resultados[-1].valor
     pipeline[0] = None
     pipeline[1] = None  
@@ -425,6 +449,12 @@ def executa_jump(resultados: list[Resultado], pipeline: list[Instrucao], lista_i
 
 
 def finaliza(pipeline, lista_inst, pc) -> bool:
+    '''
+    Quando todas as instruções da pipelina forem igual a None, ou seja,
+    se encerraram todas as instruções, o código pode finalizar, retornando 
+    True, caso contrário (ainda exista op na pipeline), retorna False e o 
+    código continua até a próxima verificacão
+    '''
     comando = True
     verifica_noop = True 
     for i in pipeline:
@@ -435,6 +465,10 @@ def finaliza(pipeline, lista_inst, pc) -> bool:
     return comando
 
 def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:list[int], memoria:list[int]):
+    '''
+    Executa um ciclo completo na pipeline, incluido busca, decodificação, execução, acesso à memoria ,
+    registro, controle do fluxo de operações e tratamento de hazards, é a função principal
+    '''
 
     linhas = operacao.readlines()
     lista_inst: list[Instrucao] = lista_instrucoes(linhas)
@@ -463,11 +497,12 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
 
         #Print
         saida = ''
+
         for i in pipeline:
             if i is not None:
                 saida += f"|{calcula_caracteres(i.text)}|" 
             else:
-                saida += f"|{calcula_caracteres("NOOP")}|" 
+                saida += f"|{calcula_caracteres('NOOP')}|" 
 
         print(str_pipeline)
         print(saida)
@@ -510,7 +545,7 @@ def main() -> None:
         for i in range(tam_memoria):
             memoria.append(0)
         
-        executa_operacoes(operacao, nome_reg, valor_reg, memoria)
+        executa_operacoes(operacao, nome_reg, valor_reg, memoria) 
     
     else:
         print("Faltou comandos na linha de parâmetro, deve conter: Script, Arquivo_Operações e um inteiro indicando o tamanho da memória")
