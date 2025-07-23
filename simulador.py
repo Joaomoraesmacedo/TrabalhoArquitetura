@@ -6,6 +6,9 @@ from typing import Optional
 
 
 class Comando(Enum):
+    '''
+    Classe que representa os comandos de uma instrução
+    '''
     ADD = auto()
     ADDI = auto()
     SUB = auto()
@@ -24,6 +27,12 @@ class Comando(Enum):
 
 @dataclass
 class Instrucao:
+    '''
+    Representa os elementos de uma instrução , sendo eles, inst: O comando a ser executado, 
+    rd: Registrador de destino, rs: Primeiro registrador de origem, rt : Segundo registrador de origem,
+    imm: Valor imediato, text: Representação textual inteira da instrução
+
+    '''
     inst: Comando
     rd: Optional[int]
     rs: Optional[int]
@@ -33,11 +42,20 @@ class Instrucao:
 
 @dataclass
 class Resultado:
+    '''
+    Representa o resultado de uma instrução contendo o comando executado, a posição a ser alterada e o valor gerado.
+    '''
     inst: Comando
     posi: Optional[int] 
     valor: Optional[int] 
 
 def inicializa_registradores() -> list:
+    '''
+    Inicializa os registradores em uma lista de R0 até R31 e os seus seus valores em outra lista inicialmente
+    
+
+    '''
+
     lista_valores = []
     lista_registradores = []
     for i in range(32):
