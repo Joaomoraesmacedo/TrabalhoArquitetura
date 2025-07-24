@@ -4,6 +4,7 @@ from enum  import Enum, auto
 from dataclasses import dataclass
 from typing import Optional
 
+TOT_REG = 32
 
 class Comando(Enum):
     '''
@@ -43,7 +44,7 @@ class Instrucao:
 @dataclass
 class Resultado:
     '''
-    Representa o resultado de uma instrução contendo o comando executado, a posição a ser alterada e o valor gerado.
+    Representa o resultado de uma instrução contendo o comando executado, a posição a ser alterada e o valor gerado
     '''
     inst: Comando
     posi: Optional[int] 
@@ -53,12 +54,11 @@ def inicializa_registradores() -> list:
     '''
     Inicializa os registradores em uma lista de R0 até R31 e os seus seus valores em outra lista inicialmente
     com todos os elementos igual a 0
-
     '''
 
     lista_valores = []
     lista_registradores = []
-    for i in range(32):
+    for i in range(TOT_REG):
         lista_registradores.append(f'R{i}')
         lista_valores.append(0)
     return lista_registradores, lista_valores  
@@ -67,7 +67,6 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
     '''
     Retorna uma lista do tipo Instrucao com todas as instruções contidas no arquivo 
     que está sendo executado
-
     '''
     lista: list[Instrucao] = []
     n = 0 #indice da isntrução
@@ -84,9 +83,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = int(regs[2][1:])
             imm = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.ADD, rd, rs, rt, imm, text)
-            lista.append(executa)
            
         elif instrucao == Comando.ADDI.name:
             regs  = resto.split(",")
@@ -94,19 +91,15 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = None
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.ADDI, rd, rs, rt, imm, text)
-            lista.append(executa)
-        
+            
         elif instrucao == Comando.SUB.name:
             regs  = resto.split(",")
             rd = int(regs[0][1:])
             rs = int(regs[1][1:])
             rt = int(regs[2][1:])
             imm = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.SUB, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.SUBI.name:
             regs  = resto.split(",")
@@ -114,9 +107,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = None
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.SUBI, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.MUL.name:
             regs  = resto.split(",")
@@ -124,9 +115,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = int(regs[2][1:])
             imm = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.MUL, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.DIV.name:
             regs  = resto.split(",")
@@ -134,9 +123,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = int(regs[2][1:])
             imm = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.DIV, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.MOD.name:
             regs  = resto.split(",")
@@ -144,9 +131,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[1][1:])
             rt = int(regs[2][1:])
             imm = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.MOD, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.BLT.name:
             regs  = resto.split(",")
@@ -154,9 +139,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[0][1:])
             rt = int(regs[1][1:])
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.BLT, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.BGT.name:
             regs  = resto.split(",")
@@ -164,9 +147,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[0][1:])
             rt = int(regs[1][1:])
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.BGT, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.BEQ.name:
             regs  = resto.split(",")
@@ -174,18 +155,14 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = int(regs[0][1:])
             rt = int(regs[1][1:])
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.BEQ, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.J.name:
             rd = None
             rs = None
             rt = None
             imm = linha[2]
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.J, rd, rs, rt, imm, text)
-            lista.append(executa)
     
         elif instrucao == Comando.LW.name:
             regs = resto.split(",")
@@ -194,9 +171,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             imm = int(valor[0])
             rs = int(valor[1].strip()[1:].replace(")", ""))
             rt = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.LW, rd, rs, rt, imm, text)
-            lista.append(executa)
 
 
         elif instrucao == Comando.SW.name:
@@ -206,9 +181,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             imm = int(valor[0])
             rt = int(valor[1].strip()[1:].replace(")", ""))
             rd = None
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.SW, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         elif instrucao == Comando.MOV.name:
             regs  = resto.split(",")
@@ -216,9 +189,7 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = None
             rt = None
             imm = int(regs[2])
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.MOV, rd, rs, rt, imm, text)
-            lista.append(executa)
 
         elif instrucao == Comando.MOVI.name:
             reg, imm_str  = resto.split(",")
@@ -226,14 +197,13 @@ def lista_instrucoes(linhas:list[str]) -> list[Instrucao]:
             rs = None
             rt = None
             imm = int(imm_str)
-            print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
             executa = Instrucao(Comando.MOVI, rd, rs, rt, imm, text)
-            lista.append(executa)
         
         else:
             print('Esta instrução não existe')
         
-            
+        print(f'{n} rd:"{rd}" rs:"{rs}" rt:"{rt}" imm:"{imm}" opcode:"{instrucao.lower()}" text:"{text}"')
+        lista.append(executa) 
         n += 1
     return lista
 
@@ -268,6 +238,10 @@ def indentifica_noop(lista:list[str], op: int):
         return "NOOP"
 
 def busca_inst(pipeline: list, lista_inst: list[Instrucao], pc: int) -> int:
+    '''
+    Realiza a busca da instrução e incrementa o contador de programa em 1,
+    sinalizando que se iniciou uma nova Instrução
+    '''
     if pc < len(lista_inst):
         pipeline[0] = lista_inst[pc]
         pc +=1 
@@ -292,13 +266,12 @@ def verica_hazard(pipeline: list[Instrucao]) -> bool:
             if dec.rs == anterior.rd or dec.rt == anterior.rd:
                 return True  # ainda há conflito com uma instrução no pipeline
 
-    return False  # nenhum conflito → pode avançar
+    return False  # nenhum conflito ele pode avançar
 
 def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: list[Resultado]) -> bool:
     '''
-    Realiza a instrução, atribuindo os valores ao registradores correspondentes,
-    executando o comando, criando um resultado do tipo Resultado e o 
-    inserindo em uma lista
+    Realiza a instrução, executando o comando de acordo com os valores ao registradores correspondentes, 
+    criando um resultado do tipo Resultado e o inserindo em uma lista, que será usada na fase de escrita
     '''
     if pipeline[2] is not None: 
             instrucao: Instrucao = pipeline[2]
@@ -306,7 +279,6 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: lis
             rs = instrucao.rs
             rt = instrucao.rt 
             imm = instrucao.imm
-
             
             if instrucao.inst == Comando.ADD:
                 posi = rd
@@ -316,7 +288,7 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: lis
             elif instrucao.inst == Comando.ADDI:
                 posi = rd
                 valor = valor_reg[rs] + imm
-                result = Resultado(Comando.ADD,posi, valor)
+                result = Resultado(Comando.ADDI,posi, valor)
 
             elif instrucao.inst == Comando.SUB:
                 posi = rd
@@ -346,7 +318,7 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: lis
             elif instrucao.inst == Comando.BLT:  
                posi = None
                if valor_reg[rs] < valor_reg[rt]:
-                    valor = imm #Verificar depois para atribuir o PC
+                    valor = imm
                     result = Resultado(Comando.BLT, posi, valor)
                     resultados.append(result)
                     return True
@@ -357,7 +329,7 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: lis
             elif instrucao.inst == Comando.BGT:   
                posi = None
                if valor_reg[rs] > valor_reg[rt]:
-                    valor = imm #Verificar depois para atribuir o PC
+                    valor = imm 
                     result = Resultado(Comando.BGT,posi, valor)
                     resultados.append(result)
                     return True
@@ -368,7 +340,7 @@ def executa_inst(pipeline: list[Instrucao], valor_reg: list[int],resultados: lis
             elif instrucao.inst == Comando.BEQ:  
                posi = None
                if valor_reg[rs] == valor_reg[rt]:
-                    valor = imm #Verificar depois para atribuir o PC
+                    valor = imm 
                     result = Resultado(Comando.BEQ,posi,valor)
                     resultados.append(result)
                     return True
@@ -476,7 +448,7 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
     tam = len(pipeline) - 1
     pc = 0 #inicia o pc 
     resultados = []
-    str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" #15 caracteres dentro de cada /
+    str_pipeline = "|-----Busca-----||---Decodifica--||---Executa-----||---Memoria-----||----Regist-----|" 
     comando = True
     while comando:
         
