@@ -488,23 +488,26 @@ def executa_operacoes(operacao:io.TextIOWrapper, nome_reg:list[str], valor_reg:l
 
         print(f"Memória: {memoria}")
         print(f"PC:{pc} ")
-        if pipeline[4] is not None:
-            print(f"rd:{pipeline[4].rd}  rs:{pipeline[4].rs}  rt:{pipeline[4].rt}  imm:{pipeline[4].imm}  opcode:{pipeline[4].inst.name.lower()} text:{pipeline[4].text} ")  
-        else:
-            print(f'rd:"None" rs:"None" rt:"None" imm:"None" opcode:"None" text:"NOOP"')
-        if pipeline[2] is not None:
-            print(f"rd:{pipeline[2].rd}  rs:{pipeline[2].rs}  rt:{pipeline[2].rt}  imm:{pipeline[2].imm}  opcode:{pipeline[2].inst.name.lower()} text:{pipeline[2].text} ")  
-        else:
-            print(f'rd:"None" rs:"None" rt:"None" imm:"None" opcode:"None" text:"NOOP"')
-        print()
-        print()
-
+        
         pc = escreve_reg(pipeline, valor_reg, memoria, resultados, pc)
 
         if jump:
             pc = executa_jump(resultados, pipeline, lista_inst, pc) 
 
         comando = finaliza(pipeline, lista_inst, pc)
+
+        if comando == True:
+            if pipeline[4] is not None:
+                print(f"rd:{pipeline[4].rd}  rs:{pipeline[4].rs}  rt:{pipeline[4].rt}  imm:{pipeline[4].imm}  opcode:{pipeline[4].inst.name.lower()} text:{pipeline[4].text} ")  
+            else:
+                print(f'rd:"None" rs:"None" rt:"None" imm:"None" opcode:"None" text:"NOOP"')
+            if pipeline[2] is not None:
+                print(f"rd:{pipeline[2].rd}  rs:{pipeline[2].rs}  rt:{pipeline[2].rt}  imm:{pipeline[2].imm}  opcode:{pipeline[2].inst.name.lower()} text:{pipeline[2].text} ")  
+            else:
+                print(f'rd:"None" rs:"None" rt:"None" imm:"None" opcode:"None" text:"NOOP"')
+            print()
+            print()
+
      
        
 def main() -> None:
